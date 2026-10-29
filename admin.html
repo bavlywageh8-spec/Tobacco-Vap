@@ -132,7 +132,8 @@ button:active,.logo:active{transform:scale(.88)}
 .panel{border-radius:16px;background:#0e0e0e;padding:1.1rem}.ph{display:flex;align-items:center;gap:.8rem;margin-bottom:.8rem}.ph b{font-size:1.3rem;flex:1}.ph .rgw{margin-left:auto}
 .pi{width:2.6rem;height:2.6rem;border-radius:50%;display:grid;place-items:center;background:#2a2008;color:var(--gd)}.ax{fill:#9b978d;font-size:12px}
 @media(max-width:720px){.side button span{font-size:.9rem}.side .out{margin-top:0;border-top:0}.oh h2{font-size:1.8rem}}
-@media(min-width:721px){#admin.open{grid-template-columns:260px 1fr}}.side button span{white-space:nowrap}</style>
+@media(min-width:721px){#admin.open{grid-template-columns:260px 1fr}}.side button span{white-space:nowrap}.pth{width:48px;height:48px;border-radius:8px;object-fit:cover;background:#fff;display:block}.pth.no{display:grid;place-items:center;background:#1e1e1e;color:#9b978d;font-size:.7rem}.upl{display:inline-block;cursor:pointer;margin-top:.3rem}.upl input{display:none}
+</style>
 </head><body>
 <div id="admin" class="open"></div>
 <script>
@@ -159,8 +160,8 @@ const remote={
  async pull(){const{data}=await sb.rpc('get_chat',{p_session:sid});if(data){D.chats[sid]=data.map(m=>({f:m.sender,t:m.body}));if($('#chat').classList.contains('open'))chatUI()}},
  async admin(){
   const{data:a}=await sb.from('admins').select('user_id').limit(1);if(!a||!a.length)return false;
-  const[pr,od,ch]=await Promise.all([sb.from('products').select('id,name,category,price,stock,discount_percent,product_costs(cost)').order('id'),sb.from('orders').select('*,order_items(product_name,qty)').order('id'),sb.from('chat_messages').select('*').order('created_at')]);
-  D.products=(pr.data||[]).map(p=>{const c=p.product_costs;return{id:p.id,name:p.name,cat:p.category,price:+p.price,stock:p.stock,disc:p.discount_percent,cost:+((Array.isArray(c)?c[0]?.cost:c?.cost)||0)}});
+  const[pr,od,ch]=await Promise.all([sb.from('products').select('id,name,category,price,stock,discount_percent,image_url,product_costs(cost)').order('id'),sb.from('orders').select('*,order_items(product_name,qty)').order('id'),sb.from('chat_messages').select('*').order('created_at')]);
+  D.products=(pr.data||[]).map(p=>{const c=p.product_costs;return{id:p.id,name:p.name,cat:p.category,price:+p.price,stock:p.stock,disc:p.discount_percent,img:p.image_url||'',cost:+((Array.isArray(c)?c[0]?.cost:c?.cost)||0)}});
   D.orders=(od.data||[]).map(o=>({id:o.id,name:o.customer_name,phone:o.phone,email:o.email,ce:o.check_email,cp:o.check_phone,ca:o.check_address,addr:o.address,lines:(o.order_items||[]).map(i=>({name:i.product_name,qty:i.qty})),total:+o.total,cost:+o.cost,status:o.status,at:new Date(o.created_at).getTime()}));
   D.chats={};(ch.data||[]).forEach(m=>(D.chats[m.session_id]=D.chats[m.session_id]||[]).push({f:m.sender,t:m.body}));
   return true}
@@ -224,10 +225,22 @@ function ov(){
   <div class="panel"><div class="ph"><i class="pi">${svg(IC.Products)}</i><b>Stock status</b></div><div class="tw"><table><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th></tr>${D.products.map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.cat)}</td><td>${L(p.price)}</td><td style="color:${p.stock<=5?'var(--bad)':'inherit'}">${p.stock}${p.stock<=0?' (sold out)':''}</td></tr>`).join('')}</table></div></div>`;
   $('#mn').querySelectorAll('.rg').forEach(s=>s.onchange=()=>{rng=+s.value;ov()});
 }
+
+/* Product photos: shrink in the browser (max 900px JPEG), upload to the product-images bucket, save the link on the product. */
+async function shrink(file){const bmp=await createImageBitmap(file),r=Math.min(1,900/Math.max(bmp.width,bmp.height)),c=document.createElement('canvas');c.width=Math.round(bmp.width*r);c.height=Math.round(bmp.height*r);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(bmp,0,0,c.width,c.height);return new Promise(res=>c.toBlob(res,'image/jpeg',.85))}
+async function upImg(id,file){
+  if(!file||!file.type.startsWith('image/'))throw new Error('Choose a JPG, PNG or WebP photo.');
+  let blob;try{blob=await shrink(file)}catch(e){throw new Error('This photo format is not supported. Use JPG, PNG or WebP.')}
+  const path='p'+id+'-'+Date.now()+'.jpg';
+  const up=await sb.storage.from('product-images').upload(path,blob,{contentType:'image/jpeg'});
+  if(up.error)throw new Error(up.error.message+' (Run schema_update3.sql in Supabase first if you have not.)');
+  const url=sb.storage.from('product-images').getPublicUrl(path).data.publicUrl;
+  const u=await sb.from('products').update({image_url:url}).eq('id',id);if(u.error)throw new Error(u.error.message)}
 function pr(){
-  $('#mn').innerHTML=`<h2>Products</h2><div class="panel"><form class="form" id="pf"><label>Name<input name="name" required></label><label>Category<input name="cat" required placeholder="Pods"></label><label>Price (L.E.)<input name="price" type="number" min="0" required></label><label>Cost (L.E.)<input name="cost" type="number" min="0" required></label><label>Stock<input name="stock" type="number" min="0" required></label><label>Discount %<input name="discount" type="number" min="0" max="90" value="0"></label><button class="btn">Add product</button></form></div>
-  <div class="panel tw"><table><tr><th>Product</th><th>Category</th><th>Price</th><th>Discount %</th><th>Stock</th><th></th></tr>${D.products.map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.cat)}</td><td><input style="width:90px" type="number" value="${p.price}" data-p="${p.id}"></td><td><input style="width:70px" type="number" min="0" max="90" value="${p.disc||0}" data-ds="${p.id}"></td><td><input style="width:80px" type="number" value="${p.stock}" data-s="${p.id}"></td><td><button class="btn ghost sm" data-d="${p.id}">Delete</button></td></tr>`).join('')}</table></div>`;
-  $('#pf').onsubmit=async e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.target));const{data,error}=await sb.from('products').insert({name:f.name,category:f.cat,price:+f.price,stock:+f.stock,discount_percent:+(f.discount||0)}).select('id').single();if(error)return alert(error.message);await sb.from('product_costs').insert({product_id:data.id,cost:+f.cost});await remote.admin();pr()};
+  $('#mn').innerHTML=`<h2>Products</h2><div class="panel"><form class="form" id="pf"><label>Name<input name="name" required></label><label>Category<input name="cat" required placeholder="Pods"></label><label>Price (L.E.)<input name="price" type="number" min="0" required></label><label>Cost (L.E.)<input name="cost" type="number" min="0" required></label><label>Stock<input name="stock" type="number" min="0" required></label><label>Discount %<input name="discount" type="number" min="0" max="90" value="0"></label><label>Photo<input name="photo" type="file" accept="image/jpeg,image/png,image/webp"></label><button class="btn">Add product</button></form></div>
+  <div class="panel tw"><table><tr><th>Photo</th><th>Product</th><th>Category</th><th>Price</th><th>Discount %</th><th>Stock</th><th></th></tr>${D.products.map(p=>`<tr><td>${p.img?`<img class="pth" src="${esc(p.img)}" alt="">`:`<div class="pth no">No photo</div>`}<label class="btn ghost sm upl">${p.img?'Change':'Upload'}<input type="file" accept="image/jpeg,image/png,image/webp" data-ph="${p.id}"></label></td><td>${esc(p.name)}</td><td>${esc(p.cat)}</td><td><input style="width:90px" type="number" value="${p.price}" data-p="${p.id}"></td><td><input style="width:70px" type="number" min="0" max="90" value="${p.disc||0}" data-ds="${p.id}"></td><td><input style="width:80px" type="number" value="${p.stock}" data-s="${p.id}"></td><td><button class="btn ghost sm" data-d="${p.id}">Delete</button></td></tr>`).join('')}</table></div>`;
+  $('#pf').onsubmit=async e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.target));const{data,error}=await sb.from('products').insert({name:f.name,category:f.cat,price:+f.price,stock:+f.stock,discount_percent:+(f.discount||0)}).select('id').single();if(error)return alert(error.message);await sb.from('product_costs').insert({product_id:data.id,cost:+f.cost});const ph=e.target.photo.files[0];if(ph){try{await upImg(data.id,ph)}catch(x){alert('Product added, but the photo failed: '+x.message)}}await remote.admin();pr()};
+  $('#mn').querySelectorAll('[data-ph]').forEach(i=>i.onchange=async()=>{const f=i.files[0];if(!f)return;const l=i.parentNode;l.firstChild.textContent='Uploading…';try{await upImg(+i.dataset.ph,f)}catch(x){alert(x.message)}await remote.admin();pr()});
   $('#mn').querySelectorAll('[data-p]').forEach(i=>i.onchange=()=>sb.from('products').update({price:+i.value}).eq('id',i.dataset.p));
   $('#mn').querySelectorAll('[data-s]').forEach(i=>i.onchange=()=>sb.from('products').update({stock:+i.value}).eq('id',i.dataset.s));
   $('#mn').querySelectorAll('[data-ds]').forEach(i=>i.onchange=()=>sb.from('products').update({discount_percent:Math.min(90,Math.max(0,+i.value||0))}).eq('id',i.dataset.ds));
