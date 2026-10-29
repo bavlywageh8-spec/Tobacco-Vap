@@ -133,6 +133,7 @@ button:active,.logo:active{transform:scale(.88)}
 .pi{width:2.6rem;height:2.6rem;border-radius:50%;display:grid;place-items:center;background:#2a2008;color:var(--gd)}.ax{fill:#9b978d;font-size:12px}
 @media(max-width:720px){.side button span{font-size:.9rem}.side .out{margin-top:0;border-top:0}.oh h2{font-size:1.8rem}}
 @media(min-width:721px){#admin.open{grid-template-columns:260px 1fr}}.side button span{white-space:nowrap}.pth{width:48px;height:48px;border-radius:8px;object-fit:cover;background:#fff;display:block}.pth.no{display:grid;place-items:center;background:#1e1e1e;color:#9b978d;font-size:.7rem}.upl{display:inline-block;cursor:pointer;margin-top:.3rem}.upl input{display:none}
+.sim{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;margin:.6rem 0;display:block;background:#000}.sim.w{aspect-ratio:16/7}
 </style>
 </head><body>
 <div id="admin" class="open"></div>
@@ -186,9 +187,9 @@ function adm(){
       const{error}=await sb.auth.signInWithPassword({email:em,password:$('#lp').value});
       if(error||!(await remote.admin())){await sb.auth.signOut();$('#lp').value='';$('#le').textContent=error?error.message:'This account is not an admin. Run the last SQL line to add it.';return}authed=true;adm()};return}
   const low=D.products.filter(p=>p.stock<=5).length;
-  A.innerHTML=`<nav class="side"><div class="brand"><img class="logo" src="${LOGO}" alt=""><div><b>Admin</b><small>Manage Your Business</small></div></div>${['Overview','Products','Orders','Support','Promos'].map(t=>`<button class="${t===tab?'on':''}" data-t="${t}">${svg(IC[t])}<span>${t}${t==='Products'&&low?` <small>(${low} low)</small>`:''}</span>${t==='Products'&&low?`<i class="bdg">${low}</i>`:''}</button>`).join('')}<button id="so" class="out">${svg('<path d="M9 4H5a1 1 0 00-1 1v14a1 1 0 001 1h4M16 8l4 4-4 4M20 12H9"/>')}<span>Sign out</span></button></nav><div class="main" id="mn"></div>`;
+  A.innerHTML=`<nav class="side"><div class="brand"><img class="logo" src="${LOGO}" alt=""><div><b>Admin</b><small>Manage Your Business</small></div></div>${['Overview','Products','Orders','Support','Promos','Images'].map(t=>`<button class="${t===tab?'on':''}" data-t="${t}">${svg(IC[t])}<span>${t}${t==='Products'&&low?` <small>(${low} low)</small>`:''}</span>${t==='Products'&&low?`<i class="bdg">${low}</i>`:''}</button>`).join('')}<button id="so" class="out">${svg('<path d="M9 4H5a1 1 0 00-1 1v14a1 1 0 001 1h4M16 8l4 4-4 4M20 12H9"/>')}<span>Sign out</span></button></nav><div class="main" id="mn"></div>`;
   A.querySelectorAll('[data-t]').forEach(b=>b.onclick=async()=>{tab=b.dataset.t;await remote.admin();adm()});$('#so').onclick=closeAdmin;
-  ({Overview:ov,Products:pr,Orders:od,Support:sp,Promos:pm})[tab]();
+  ({Overview:ov,Products:pr,Orders:od,Support:sp,Promos:pm,Images:im})[tab]();
 }
 async function pm(){
   const{data}=await sb.from('promo_codes').select('*').order('created_at',{ascending:false});
@@ -199,7 +200,7 @@ async function pm(){
   $('#mn').querySelectorAll('[data-pa]').forEach(i=>i.onchange=()=>sb.from('promo_codes').update({active:i.checked}).eq('code',i.dataset.pa));
   $('#mn').querySelectorAll('[data-pd]').forEach(b=>b.onclick=async()=>{await sb.from('promo_codes').delete().eq('code',b.dataset.pd);pm()});
 }
-const IC={Overview:'<path d="M3 11l9-8 9 8v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/>',Products:'<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/>',Orders:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6"/>',Support:'<path d="M4 14v-2a8 8 0 0116 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/>',Promos:'<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/>'};
+const IC={Images:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/>',Overview:'<path d="M3 11l9-8 9 8v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/>',Products:'<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/>',Orders:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6"/>',Support:'<path d="M4 14v-2a8 8 0 0116 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/>',Promos:'<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/>'};
 const svg=(p,s=22)=>`<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
 let rng=7;
 const rgSel=()=>`<label class="rgw">${svg('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',18)}<select class="rg" aria-label="Date range">${[7,30,90].map(n=>`<option value="${n}" ${n===rng?'selected':''}>Last ${n} days</option>`).join('')}</select></label>`;
@@ -227,7 +228,7 @@ function ov(){
 }
 
 /* Product photos: shrink in the browser (max 900px JPEG), upload to the product-images bucket, save the link on the product. */
-async function shrink(file){const bmp=await createImageBitmap(file),r=Math.min(1,900/Math.max(bmp.width,bmp.height)),c=document.createElement('canvas');c.width=Math.round(bmp.width*r);c.height=Math.round(bmp.height*r);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(bmp,0,0,c.width,c.height);return new Promise(res=>c.toBlob(res,'image/jpeg',.85))}
+async function shrink(file,mx=900){const bmp=await createImageBitmap(file),r=Math.min(1,mx/Math.max(bmp.width,bmp.height)),c=document.createElement('canvas');c.width=Math.round(bmp.width*r);c.height=Math.round(bmp.height*r);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(bmp,0,0,c.width,c.height);return new Promise(res=>c.toBlob(res,'image/jpeg',.85))}
 async function upImg(id,file){
   if(!file||!file.type.startsWith('image/'))throw new Error('Choose a JPG, PNG or WebP photo.');
   let blob;try{blob=await shrink(file)}catch(e){throw new Error('This photo format is not supported. Use JPG, PNG or WebP.')}
@@ -236,6 +237,19 @@ async function upImg(id,file){
   if(up.error)throw new Error(up.error.message+' (Run schema_update3.sql in Supabase first if you have not.)');
   const url=sb.storage.from('product-images').getPublicUrl(path).data.publicUrl;
   const u=await sb.from('products').update({image_url:url}).eq('id',id);if(u.error)throw new Error(u.error.message)}
+
+/* Shop images: main (hero) image and the four category banners */
+const SLOTS=[['hero','Main image at the top of the shop','hero.jpg','Wide photo, about 1600 x 700. The title sits on the left, so keep that side calm.'],['cat0','Disposables banner','cat-disposables.jpg','4:3 banner.'],['cat1','Pod System banner','cat-pods.jpg','4:3 banner.'],['cat2','Premium E-liquid banner','cat-premium.jpg','4:3 banner.'],['cat3','Egyptian E-liquid banner','cat-egyptian.jpg','4:3 banner.']];
+async function im(){
+  const{data,error}=await sb.from('site_images').select('key,url');const cur={};(data||[]).forEach(r=>cur[r.key]=r.url);
+  $('#mn').innerHTML=`<h2>Shop images</h2>${error?'<div class="panel">Run schema_update4.sql in the Supabase SQL Editor first. ('+esc(error.message)+')</div>':''}<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem">${SLOTS.map(([k,t,d,h])=>`<div class="panel"><b>${t}</b><img class="sim ${k==='hero'?'w':''}" src="${esc(cur[k]||d)}" alt=""><small style="color:var(--mu)">${cur[k]?'Custom image':'Default image'}. ${h}</small><div style="margin-top:.6rem"><label class="btn sm upl">Change image<input type="file" accept="image/jpeg,image/png,image/webp" data-si="${k}"></label> ${cur[k]?`<button class="btn ghost sm" data-sr="${k}">Back to default</button>`:''}</div></div>`).join('')}</div>`;
+  $('#mn').querySelectorAll('[data-si]').forEach(i=>i.onchange=async()=>{const f=i.files[0],k=i.dataset.si;if(!f)return;i.parentNode.firstChild.textContent='Uploading…';
+    try{if(!f.type.startsWith('image/'))throw new Error('Choose a JPG, PNG or WebP image.');let blob;try{blob=await shrink(f,k==='hero'?1600:900)}catch(x){throw new Error('This image format is not supported. Use JPG, PNG or WebP.')}
+      const path='site-'+k+'-'+Date.now()+'.jpg',up=await sb.storage.from('product-images').upload(path,blob,{contentType:'image/jpeg'});if(up.error)throw new Error(up.error.message);
+      const url=sb.storage.from('product-images').getPublicUrl(path).data.publicUrl,r=await sb.from('site_images').upsert({key:k,url,updated_at:new Date().toISOString()});if(r.error)throw new Error(r.error.message)}catch(x){alert(x.message)}
+    im()});
+  $('#mn').querySelectorAll('[data-sr]').forEach(b=>b.onclick=async()=>{await sb.from('site_images').delete().eq('key',b.dataset.sr);im()});
+}
 function pr(){
   $('#mn').innerHTML=`<h2>Products</h2><div class="panel"><form class="form" id="pf"><label>Name<input name="name" required></label><label>Category<input name="cat" required placeholder="Pods"></label><label>Price (L.E.)<input name="price" type="number" min="0" required></label><label>Cost (L.E.)<input name="cost" type="number" min="0" required></label><label>Stock<input name="stock" type="number" min="0" required></label><label>Discount %<input name="discount" type="number" min="0" max="90" value="0"></label><label>Photo<input name="photo" type="file" accept="image/jpeg,image/png,image/webp"></label><button class="btn">Add product</button></form></div>
   <div class="panel tw"><table><tr><th>Photo</th><th>Product</th><th>Category</th><th>Price</th><th>Discount %</th><th>Stock</th><th></th></tr>${D.products.map(p=>`<tr><td>${p.img?`<img class="pth" src="${esc(p.img)}" alt="">`:`<div class="pth no">No photo</div>`}<label class="btn ghost sm upl">${p.img?'Change':'Upload'}<input type="file" accept="image/jpeg,image/png,image/webp" data-ph="${p.id}"></label></td><td>${esc(p.name)}</td><td>${esc(p.cat)}</td><td><input style="width:90px" type="number" value="${p.price}" data-p="${p.id}"></td><td><input style="width:70px" type="number" min="0" max="90" value="${p.disc||0}" data-ds="${p.id}"></td><td><input style="width:80px" type="number" value="${p.stock}" data-s="${p.id}"></td><td><button class="btn ghost sm" data-d="${p.id}">Delete</button></td></tr>`).join('')}</table></div>`;

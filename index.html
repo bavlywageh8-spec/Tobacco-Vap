@@ -157,7 +157,7 @@ button:active,.logo:active{transform:scale(.88)}
 .thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}footer{padding-bottom:1.1rem}.credit{margin-top:1.4rem;text-align:right;padding-right:4.4rem;font-size:.7rem;font-weight:500;letter-spacing:.03em;color:var(--gd);opacity:.85}
 /* ===== Design update: hero photo, category tiles, account screens ===== */
 .hero{position:relative;min-height:min(62vh,480px);padding:3rem 1.5rem 3rem 6vw;background:#0a0a0a;overflow:hidden;isolation:isolate}
-.hero::before{content:"";position:absolute;inset:0;z-index:-2;background:url(hero.jpg) right center/cover no-repeat}
+.hero::before{content:"";position:absolute;inset:0;z-index:-2;background:var(--heroimg,url(hero.jpg)) right center/cover no-repeat}
 .hero::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#0a0a0a 0%,#0a0a0aee 28%,#0a0a0a66 60%,transparent 100%)}
 .hero h1{max-width:10.5ch;background:linear-gradient(180deg,#fff 40%,#aeb6c8);-webkit-background-clip:text;background-clip:text;color:transparent}
 .hero p{color:#d8d5cc}
@@ -317,9 +317,10 @@ if(!sid){sid='c'+Math.random().toString(36).slice(2,7);try{localStorage.setItem(
 if(DEMO)document.body.insertAdjacentHTML('afterbegin','<div style="background:#3a2a0e;color:#f0c978;padding:.4rem 1rem;text-align:center;font-size:.85rem">Demo mode: '+WHY+'</div>');
 const L=n=>Number(n).toLocaleString('en')+(lang==='ar'?' ج.م':' L.E.');
 
+let SI={};
 const CT=[[0,'cat-disposables.jpg','Disposables',/dispos/i],[1,'cat-pods.jpg','Pod System',/pod/i],[2,'cat-premium.jpg','Premium E-liquid',/premium/i,/liquid|juice/i],[3,'cat-egyptian.jpg','Egyptian E-liquid',/egypt/i,/liquid|juice/i]];
 function catFor(r){const cs=[...new Set(D.products.map(p=>p.cat))];return cs.find(c=>r[3].test(c))||(r[4]&&cs.find(c=>r[4].test(c)))||null}
-function cban(c){const r=CT.find(r=>r[3].test(c));return r?`<img class="cban" src="${r[1]}" alt="${r[2]}">`:''}
+function cban(c){const r=CT.find(r=>r[3].test(c));return r?`<img class="cban" src="${esc(SI['cat'+r[0]]||r[1])}" alt="${r[2]}">`:''}
 function cardHTML(p){const out=p.stock<=0;return`<article class="card"><div class="thumb">${p.img?`<img src="${esc(p.img)}" alt="${esc(p.name)}" loading="lazy" draggable="false">`:esc(p.name.slice(0,2))}${out?'<span class="tg so">Sold out</span>':p.disc>0?`<span class="tg off">-${p.disc}%</span>`:''}<button class="hrt ${wl.has(p.id)?'on':''}" data-w="${p.id}" aria-label="Save to wishlist">&#9829;</button></div><div class="in"><small>${esc(p.cat)}</small><b>${esc(p.name)}</b><span class="price">${p.disc>0?`<s>${L(p.price)}</s><em>${L(eff(p))}</em>`:L(p.price)}</span>${out?'<button class="btn" disabled>Sold out</button>':`<button class="btn" data-a="${p.id}">Add to cart</button>`}</div></article>`}
 function shop(){
   const cs=['All',...new Set(D.products.map(p=>p.cat))];
@@ -327,7 +328,7 @@ function shop(){
   $('#cats').querySelectorAll('button').forEach(b=>b.onclick=()=>{cat=b.dataset.c;view='all';shop()});
   $('#mcats').innerHTML=cs.filter(c=>c!=='All').map(c=>`<button data-mc="${esc(c)}">${esc(c)}</button>`).join('');
   $('#mcats').querySelectorAll('button').forEach(b=>b.onclick=()=>{cat=b.dataset.mc;view='all';closeAll();shop();toShop()});
-  if(!$('#bans').firstChild){$('#bans').innerHTML='<h2>Shop by category</h2><div class="btiles">'+CT.map((r,i)=>`<button class="ctile" data-ct="${i}" aria-label="${r[2]}"><img src="${r[1]}" alt="${r[2]}" loading="lazy" draggable="false"></button>`).join('')+'</div>';
+  if(!$('#bans').firstChild){$('#bans').innerHTML='<h2>Shop by category</h2><div class="btiles">'+CT.map((r,i)=>`<button class="ctile" data-ct="${i}" aria-label="${r[2]}"><img src="${esc(SI['cat'+r[0]]||r[1])}" alt="${r[2]}" loading="lazy" draggable="false"></button>`).join('')+'</div>';
     $('#bans').querySelectorAll('[data-ct]').forEach(b=>b.onclick=()=>{cat=catFor(CT[+b.dataset.ct])||'All';view='all';shop();toShop()})}
   const q=$('#q').value.toLowerCase();
   const ps=D.products.filter(p=>(view==='wish'?wl.has(p.id):(cat==='All'||p.cat===cat))&&p.name.toLowerCase().includes(q));
@@ -500,4 +501,5 @@ function tick(){
   requestAnimationFrame(tick)}
 requestAnimationFrame(tick);
 fillAreas();setLang(lang);
+if(!DEMO)sb.from('site_images').select('key,url').then(({data})=>{if(!data||!data.length)return;data.forEach(r=>SI[r.key]=r.url);if(SI.hero)document.documentElement.style.setProperty('--heroimg','url("'+SI.hero.replace(/"/g,'%22')+'")');$('#bans').innerHTML='';shop()});
 </script></body></html>
