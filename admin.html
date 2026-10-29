@@ -5,6 +5,7 @@
 <title>Admin</title>
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>window.supabase||document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"><\/script>')</script>
 <style>
 :root{color-scheme:dark;--bg:#0a0a0a;--sf:#151515;--sf2:#1e1e1e;--bd:#2c2c2c;--tx:#f2f0ea;--mu:#9b978d;--gd:#d4a24c;--gd2:#f0c978;--ok:#3ecf8e;--bad:#ff5c5c;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}
 *{box-sizing:border-box}html,body{margin:0}
@@ -128,9 +129,9 @@ let D={products:[],orders:[],chats:{}},sid='';
 const save=()=>{};
 function reload(){return D}
 const TC=window.TV_CONFIG||{},SB_URL=TC.SUPABASE_URL||'PASTE_YOUR_PROJECT_URL',SB_KEY=TC.SUPABASE_KEY||'PASTE_YOUR_PUBLISHABLE_KEY',GKEY=TC.GOOGLE_MAPS_KEY||'';let delivery=+(TC.DELIVERY_FEE??50);
-let sb,DEMO=false;
-try{if(/^PASTE/.test(SB_URL))throw 0;sb=window.supabase.createClient(SB_URL,SB_KEY)}catch(e){DEMO=true;console.warn('Supabase is not configured, running in demo mode.');
-  const NC={message:'The database is not connected yet. Add your Supabase URL and key to this file.'};
+let sb,DEMO=false,WHY='';
+try{if(/^PASTE/.test(SB_URL)||/^PASTE/.test(SB_KEY))throw 'config';if(!window.supabase)throw 'lib';sb=window.supabase.createClient(SB_URL,SB_KEY)}catch(e){DEMO=true;WHY=e==='config'?'config.js was not found or still has the PASTE placeholders. Upload config.js into the same folder as this page, then refresh.':'The Supabase library could not load. Check your internet connection and refresh.';console.warn('Demo mode: '+WHY);
+  const NC={message:WHY};
   const stub=()=>{const q=new Proxy(function(){},{get:(_,k)=>k==='then'?f=>Promise.resolve({data:null,error:NC}).then(f):q,apply:()=>q});return q};
   const fail=async()=>({data:{},error:NC});
   sb={from:stub,rpc:stub,auth:{getSession:async()=>({data:{session:null}}),onAuthStateChange(){},signOut:async()=>({}),signInWithPassword:fail,signUp:fail,resetPasswordForEmail:fail}}}
@@ -157,7 +158,7 @@ function adm(){
     $('#nf').onsubmit=async e=>{e.preventDefault();const{error}=await sb.auth.updateUser({password:$('#np').value});if(error){$('#le').textContent=error.message;return}rec=false;await sb.auth.signOut();authed=false;adm()};return}
   if(!authed){let em0='';try{em0=localStorage.getItem('tv_ae')||''}catch(x){}
     A.innerHTML=`<div class="lg"><div class="stage"><form class="lbox" id="lf"><label for="lm">Email</label><input class="em" id="lm" type="email" required autocomplete="username" value="${esc(em0)}"><label for="lp">Password</label><div class="pw"><input id="lp" type="password" autocomplete="current-password"><button type="button" id="eye" aria-label="Show password">&#128065;</button></div><div class="lrow"><label class="rm"><input type="checkbox" id="rm" checked> Remember me</label><a href="#" id="fg">Forgot password?</a></div><div id="le" role="alert"></div><button class="btn gbtn">Sign in</button><a href="index.html" class="back">Back to shop</a></form></div></div>`;
-    const NC='The database is not connected yet. Add your Supabase URL and key to this file.';
+    const NC=WHY;
     $('#eye').onclick=()=>{const p=$('#lp');p.type=p.type==='password'?'text':'password'};
     $('#fg').onclick=async e=>{e.preventDefault();const em=$('#lm').value.trim();if(!em){$('#le').textContent='Type your email first, then tap Forgot password.';return}
       if(DEMO){$('#le').textContent=NC;return}
