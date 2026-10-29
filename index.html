@@ -153,7 +153,7 @@ button:active,.logo:active{transform:scale(.88)}
 .ban{min-height:170px;border:1px solid var(--bd);border-radius:12px;background:linear-gradient(135deg,#17120a,#3a2a0e 60%,#0d0d0d);display:grid;align-content:center;justify-items:center;gap:.8rem;font-size:1.9rem;font-weight:800;text-transform:uppercase;color:var(--tx)}.ban i{font-style:normal;font-size:.78rem;background:var(--gd);color:#111;padding:.3rem .95rem;border-radius:99px}
 .btn.chatfab{width:46px;height:46px}.chat.chat{width:min(300px,calc(100% - 2rem));height:340px;max-height:calc(100vh - 8rem)}.m{font-size:.85rem}.chat h4{padding:.6rem .9rem;font-size:.95rem}
 @media(max-width:720px){.chat.chat{height:min(340px,48vh);max-height:none}}
-</style></head><body>
+.thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}footer{padding-bottom:1.1rem}.credit{margin-top:1.4rem;text-align:right;padding-right:4.4rem;font-size:.7rem;font-weight:500;letter-spacing:.03em;color:var(--gd);opacity:.85}</style></head><body>
 
 
 <header class="top">
@@ -168,7 +168,7 @@ button:active,.logo:active{transform:scale(.88)}
 <section class="bans" id="bans"></section>
 <div class="cats" id="cats" role="tablist"></div>
 <main class="grid" id="shop"></main>
-<footer>© Tobacco Vape · Alexandria, Egypt · Sales to adults 18+ only</footer>
+<footer>© Tobacco Vape · Alexandria, Egypt · Sales to adults 18+ only<div class="credit">Designed by Bavlywageh</div></footer>
 
 <aside class="drawer cartd" id="drawer">
 <div class="dh"><div class="dbrand"><img class="dlogo" alt=""><span>TOBACCO<br>VAPE</span></div><button class="btn ghost sm" id="cx" type="button">&#10005; Close</button></div>
@@ -201,7 +201,7 @@ button:active,.logo:active{transform:scale(.88)}
 <script>
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const TC=window.TV_CONFIG||{},SB_URL=TC.SUPABASE_URL||'PASTE_YOUR_PROJECT_URL',SB_KEY=TC.SUPABASE_KEY||'PASTE_YOUR_PUBLISHABLE_KEY',GKEY=TC.GOOGLE_MAPS_KEY||'';let delivery=+(TC.DELIVERY_FEE??50);
+const TC=window.TV_CONFIG||{},real=v=>v&&!/^PASTE/.test(v)?v:'',SB_URL=real(TC.SUPABASE_URL)||'https://pjmzynntzvspvpmuhiwy.supabase.co',SB_KEY=real(TC.SUPABASE_KEY)||'sb_publishable_zONjDZjew9MtmkK0SxIF2w_20liBuJX',GKEY=TC.GOOGLE_MAPS_KEY||'';let delivery=+(TC.DELIVERY_FEE??50);
 let sb,DEMO=false,WHY='';
 try{if(/^PASTE/.test(SB_URL)||/^PASTE/.test(SB_KEY))throw 'config';if(!window.supabase)throw 'lib';sb=window.supabase.createClient(SB_URL,SB_KEY)}catch(e){DEMO=true;WHY=e==='config'?'config.js was not found or still has the PASTE placeholders. Upload config.js into the same folder as this page, then refresh.':'The Supabase library could not load. Check your internet connection and refresh.';console.warn('Demo mode: '+WHY);
   const NC={message:WHY};
@@ -210,7 +210,7 @@ try{if(/^PASTE/.test(SB_URL)||/^PASTE/.test(SB_KEY))throw 'config';if(!window.su
   sb={from:stub,rpc:stub,auth:{getSession:async()=>({data:{session:null}}),onAuthStateChange(){},signOut:async()=>({}),signInWithPassword:fail,signUp:fail,resetPasswordForEmail:fail}}}
 const DEMO_P=[{id:1,name:'Pod Kit Pro 30W',cat:'Pods',price:1450,cost:0,stock:12,disc:15},{id:2,name:'Slim Pod Starter',cat:'Pods',price:850,cost:0,stock:20,disc:0},{id:3,name:'Box Mod 100W',cat:'Devices',price:2300,cost:0,stock:6,disc:0},{id:4,name:'Mango Ice 60ml Salt',cat:'E-liquid',price:200,cost:0,stock:40,disc:10},{id:5,name:'Tobacco Gold 60ml',cat:'E-liquid',price:220,cost:0,stock:3,disc:0},{id:6,name:'Replacement Coils x5',cat:'Accessories',price:180,cost:0,stock:0,disc:0}];
 const remote={
- async products(){if(DEMO){D.products=DEMO_P;shop();return}const{data}=await sb.from('products').select('id,name,category,price,stock,discount_percent').order('id');if(data){D.products=data.map(p=>({id:p.id,name:p.name,cat:p.category,price:+p.price,cost:0,stock:p.stock,disc:p.discount_percent||0}));shop()}},
+ async products(){if(DEMO){D.products=DEMO_P;shop();return}const{data}=await sb.from('products').select('id,name,category,price,stock,discount_percent,image_url').order('id');if(data){D.products=data.map(p=>({id:p.id,name:p.name,cat:p.category,price:+p.price,cost:0,stock:p.stock,disc:p.discount_percent||0,img:p.image_url||''}));shop()}},
  async order(items,n,p,a,e,c){const{error}=await sb.rpc('place_order',{p_name:n,p_phone:p,p_address:a,p_items:items,p_promo:promo?promo.code:null,p_email:e,p_checks:c});return error},
  async chat(t){await sb.rpc('send_chat',{p_session:sid,p_body:t})},
  async pull(){const{data}=await sb.rpc('get_chat',{p_session:sid});if(data){D.chats[sid]=data.map(m=>({f:m.sender,t:m.body}));if($('#chat').classList.contains('open'))chatUI()}},
@@ -248,14 +248,14 @@ function shop(){
   $('#bans').querySelectorAll('button').forEach(b=>b.onclick=()=>{cat=b.dataset.bc;view='all';shop();toShop()});
   const q=$('#q').value.toLowerCase();
   const ps=D.products.filter(p=>(view==='wish'?wl.has(p.id):(cat==='All'||p.cat===cat))&&p.name.toLowerCase().includes(q));
-  $('#shop').innerHTML=ps.length?ps.map(p=>{const out=p.stock<=0;return`<article class="card"><div class="thumb">${esc(p.name.slice(0,2))}${out?'<span class="tg so">Sold out</span>':p.disc>0?`<span class="tg off">-${p.disc}%</span>`:''}<button class="hrt ${wl.has(p.id)?'on':''}" data-w="${p.id}" aria-label="Save to wishlist">&#9829;</button></div><div class="in"><small>${esc(p.cat)}</small><b>${esc(p.name)}</b><span class="price">${p.disc>0?`<s>${L(p.price)}</s><em>${L(eff(p))}</em>`:L(p.price)}</span>${out?'<button class="btn" disabled>Sold out</button>':`<button class="btn" data-a="${p.id}">Add to cart</button>`}</div></article>`}).join(''):`<p style="color:var(--mu)">${view==='wish'?'Your wishlist is empty. Tap the heart on a product to save it.':'No products match your search.'}</p>`;
+  $('#shop').innerHTML=ps.length?ps.map(p=>{const out=p.stock<=0;return`<article class="card"><div class="thumb">${p.img?`<img src="${esc(p.img)}" alt="${esc(p.name)}" loading="lazy">`:esc(p.name.slice(0,2))}${out?'<span class="tg so">Sold out</span>':p.disc>0?`<span class="tg off">-${p.disc}%</span>`:''}<button class="hrt ${wl.has(p.id)?'on':''}" data-w="${p.id}" aria-label="Save to wishlist">&#9829;</button></div><div class="in"><small>${esc(p.cat)}</small><b>${esc(p.name)}</b><span class="price">${p.disc>0?`<s>${L(p.price)}</s><em>${L(eff(p))}</em>`:L(p.price)}</span>${out?'<button class="btn" disabled>Sold out</button>':`<button class="btn" data-a="${p.id}">Add to cart</button>`}</div></article>`}).join(''):`<p style="color:var(--mu)">${view==='wish'?'Your wishlist is empty. Tap the heart on a product to save it.':'No products match your search.'}</p>`;
   $('#shop').querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const id=+b.dataset.a,p=D.products.find(x=>x.id===id);if((cart[id]||0)<p.stock)cart[id]=(cart[id]||0)+1;cartUI();fill();openP('drawer')});
   $('#shop').querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{const id=+b.dataset.w;wl.has(id)?wl.delete(id):wl.add(id);try{localStorage.setItem('tv_wl',JSON.stringify([...wl]))}catch(e){}if(view==='wish')shop();else{b.classList.toggle('on',wl.has(id));wlUI()}});
   wlUI();rv();
 }
 function cartUI(){
   const ids=Object.keys(cart).filter(i=>D.products.some(p=>p.id==i));let t=0,n=0;
-  $('#items').innerHTML=ids.map(id=>{const p=D.products.find(x=>x.id==id),u=eff(p);t+=u*cart[id];n+=cart[id];return`<div class="citem"><div class="cth">${esc(p.name.slice(0,2))}</div><div class="cmid"><b>${esc(p.name)}</b><small>${esc(p.cat)}${p.disc>0?' · -'+p.disc+'%':''}</small><div class="qty"><button type="button" data-q="${id}" data-qd="-1" aria-label="Less">&minus;</button><span>${cart[id]}</span><button type="button" data-q="${id}" data-qd="1" aria-label="More">+</button></div></div><div class="cr"><button class="trash" type="button" data-r="${id}" aria-label="Remove"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button><b class="cpr">${L(u*cart[id])}</b></div></div>`}).join('');
+  $('#items').innerHTML=ids.map(id=>{const p=D.products.find(x=>x.id==id),u=eff(p);t+=u*cart[id];n+=cart[id];return`<div class="citem"><div class="cth">${p.img?`<img src="${esc(p.img)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:10px">`:esc(p.name.slice(0,2))}</div><div class="cmid"><b>${esc(p.name)}</b><small>${esc(p.cat)}${p.disc>0?' · -'+p.disc+'%':''}</small><div class="qty"><button type="button" data-q="${id}" data-qd="-1" aria-label="Less">&minus;</button><span>${cart[id]}</span><button type="button" data-q="${id}" data-qd="1" aria-label="More">+</button></div></div><div class="cr"><button class="trash" type="button" data-r="${id}" aria-label="Remove"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button><b class="cpr">${L(u*cart[id])}</b></div></div>`}).join('');
   $('#items').querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{delete cart[b.dataset.r];cartUI()});
   $('#items').querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const id=+b.dataset.q,p=D.products.find(x=>x.id===id),v=(cart[id]||0)+ +b.dataset.qd;if(v<=0)delete cart[id];else if(v<=p.stock)cart[id]=v;cartUI()});
   const d=promo?Math.round(t*promo.pct)/100:0,dl=n?delivery:0;
