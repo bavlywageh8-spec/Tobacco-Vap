@@ -277,7 +277,7 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 let lang='en';try{lang=localStorage.getItem('tv_lang')==='ar'?'ar':'en'}catch(e){}
-const AR={'Search products…':'ابحث عن المنتجات…','Tobacco Vape | Your trusted vape store in Egypt':'توباكو فيب | متجرك الموثوق للفيب في مصر','Pods, kits and e-liquids.':'بودات وأجهزة وسوائل فيب.','Authentic devices and fresh flavours, delivered across Egypt. Pay on delivery.':'أجهزة أصلية ونكهات طازجة، توصيل لكل مصر. الدفع عند الاستلام.','Shop now':'تسوق الآن','SHOP NOW':'تسوق الآن','100% authentic':'أصلي 100%','Fast shipping':'شحن سريع','Cash on delivery':'الدفع عند الاستلام','Adults 18+ only':'للبالغين 18+ فقط','© Tobacco Vape · Alexandria, Egypt · Sales to adults 18+ only':'© توباكو فيب · الإسكندرية، مصر · البيع للبالغين 18+ فقط','Used Devices':'أجهزة مستعملة','Replacement Coils':'كويلات بديلة','Shop by category':'تسوق حسب الفئة','Join our WhatsApp group':'انضم لجروب الواتساب','Designed by Bavlywageh':'تصميم Bavlywageh',
+const AR={'Search products…':'ابحث عن المنتجات…','Tobacco Vape | Your trusted vape store in Egypt':'توباكو فيب | متجرك الموثوق للفيب في مصر','Pods, kits and e-liquids.':'بودات وأجهزة وسوائل فيب.','Authentic devices and fresh flavours, delivered across Egypt. Pay on delivery.':'أجهزة أصلية ونكهات طازجة، توصيل لكل مصر. الدفع عند الاستلام.','Shop now':'تسوق الآن','SHOP NOW':'تسوق الآن','100% authentic':'أصلي 100%','Fast shipping':'شحن سريع','Cash on delivery':'الدفع عند الاستلام','Adults 18+ only':'للبالغين 18+ فقط','© Tobacco Vape · Alexandria, Egypt · Sales to adults 18+ only':'© توباكو فيب · الإسكندرية، مصر · البيع للبالغين 18+ فقط','Used Devices':'أجهزة مستعملة','Please log in or sign up first to place your order.':'سجّل الدخول أو أنشئ حساباً أولاً لإتمام طلبك.','Replacement Coils':'كويلات بديلة','Shop by category':'تسوق حسب الفئة','Join our WhatsApp group':'انضم لجروب الواتساب','Designed by Bavlywageh':'تصميم Bavlywageh',
 'All':'الكل','Pods':'بودات','Devices':'أجهزة','E-liquid':'سوائل','Accessories':'إكسسوارات','Disposable':'استعمال واحد','View all':'عرض الكل','Sold out':'نفد المخزون','Add to cart':'أضف للسلة','Your wishlist is empty. Tap the heart on a product to save it.':'قائمة المفضلة فارغة. اضغط على القلب لحفظ منتج.','No products match your search.':'لا توجد منتجات مطابقة لبحثك.',
 'Menu':'القائمة','Shop all':'كل المنتجات','My wishlist':'المفضلة','Log in / Sign up':'تسجيل الدخول / إنشاء حساب','Support chat':'الدعم','Shop':'المتجر','Wishlist':'المفضلة','Cart':'السلة','Account':'الحساب','Search':'بحث','Close':'إغلاق','✕ Close':'✕ إغلاق','Tobacco Vape support':'دعم توباكو فيب','Type a message…':'اكتب رسالتك…','Send':'إرسال','Hi! Ask us anything about our products or delivery.':'أهلاً! اسألنا عن المنتجات أو التوصيل.',
 'Your':'','cart':'سلة مشترياتك','Your cart is empty':'سلتك فارغة',"Looks like you haven't added anything yet. Explore our collection and find your favorites.":'لم تضف أي منتج بعد. تصفح المجموعة واختر ما يعجبك.','Continue shopping':'متابعة التسوق','Promo code':'كود الخصم','Apply':'تطبيق','Subtotal':'المجموع الفرعي','Delivery':'التوصيل','Discount':'الخصم','Total':'الإجمالي','Customer details':'بيانات العميل','Full name':'الاسم بالكامل','Phone number (01012345678)':'رقم الموبايل (01012345678)','Email':'البريد الإلكتروني','Select your area in Alexandria':'اختر منطقتك في الإسكندرية','Other (not in the list)':'أخرى (غير موجودة في القائمة)','Your area + a distinctive street sign or landmark':'منطقتك + علامة مميزة أو معلم قريب','Street, building number, floor, apartment':'الشارع، رقم العمارة، الدور، الشقة','Delivery is available in Alexandria, Egypt only.':'التوصيل متاح داخل الإسكندرية، مصر فقط.','Place order →':'تأكيد الطلب ←','Place order anyway →':'تأكيد الطلب كما هو ←','Checking address…':'جارٍ التحقق من العنوان…','Placing order…':'جارٍ إرسال الطلب…',
@@ -383,6 +383,7 @@ $('#car').onchange=()=>{$('#cow').hidden=$('#car').value!=='__other';pend='';$('
 $('#cother').oninput=$('#ca').oninput=()=>{pend='';$('#place').textContent=T('Place order →')};
 $('#place').onclick=async()=>{
   const ids=Object.keys(cart);if(!ids.length)return;
+  if(!DEMO&&!cust){wantOrder=true;mode='in';acct(T('Please log in or sign up first to place your order.'));openP('acct');return}
   const nm=$('#cn').value.trim(),ph=$('#cp').value.replace(/[\s\-()]/g,''),em=$('#ce').value.trim().toLowerCase(),line=$('#ca').value.trim(),area=$('#car').value,oth=$('#cother').value.trim(),fe=$('#ferr'),isO=area==='__other';
   const bad=nm.length<2?T('Enter your full name.'):!validPhone(ph)?T('Enter a valid mobile number, for example 01012345678.'):!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)?T('Enter a valid email address.'):!area?T('Select your area in Alexandria.'):isO&&oth.length<4?T('Write your area and a distinctive street sign or landmark.'):line.length<5?T('Enter your street, building number and floor.'):'';
   fe.textContent=bad;if(bad)return;
@@ -394,7 +395,7 @@ $('#place').onclick=async()=>{
   const chk=DEMO?{}:await silentChecks(em,ph,g);
   const err=await remote.order(ids.map(i=>({id:+i,qty:cart[i]})),nm,ph,ad,em,chk);
   btn.disabled=false;btn.textContent=T('Place order →');pend='';
-  if(err){fe.textContent=T('Could not place the order: ')+err.message;return}
+  if(err){if(/permission denied/i.test(err.message)){wantOrder=true;mode='in';acct(T('Please log in or sign up first to place your order.'));openP('acct');return}fe.textContent=T('Could not place the order: ')+err.message;return}
   cart={};promo=null;$('#promo').value='';$('#pm').textContent='';fe.textContent='';cartUI();await remote.products();closeAll();alert(T('Order placed. We will call you to confirm delivery.'));
 };
 
@@ -434,11 +435,11 @@ addEventListener('scroll',()=>$('.top').classList.toggle('sc',scrollY>30),{passi
 const io='IntersectionObserver' in window?new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){const el=en.target;el.style.animationDelay=(el._i||0)*70+'ms';el.classList.add('in');io.unobserve(el)}}),{rootMargin:'0px 0px -6% 0px'}):null;
 function rv(){document.querySelectorAll('#shop.grid .card:not(.rv),.ban:not(.rv),.feat>div:not(.rv),.hero>div:not(.rv),footer:not(.rv),.cats:not(.rv)').forEach((el,i)=>{el.classList.add('rv');el._i=i%4;io?io.observe(el):el.classList.add('in')})}
 /* customer accounts */
-let cust=null,mode='in';
+let cust=null,mode='in',wantOrder=false;
 try{if(localStorage.getItem('tv_crem')==='0')sb.auth.signOut()}catch(e){}
 sb.auth.getSession().then(({data})=>{cust=data.session?data.session.user:null});
 sb.auth.onAuthStateChange((ev,s)=>{cust=s?s.user:null;if(ev==='PASSWORD_RECOVERY'){const pw=prompt('Choose a new password (at least 6 characters)');if(pw&&pw.length>=6)sb.auth.updateUser({password:pw}).then(r=>alert(r.error?r.error.message:'Password updated.'))}});
-function fill(){if(cust){const m=cust.user_metadata||{};if(!$('#cn').value)$('#cn').value=m.full_name||'';if(!$('#cp').value)$('#cp').value=m.phone||''}}
+function fill(){if(cust){const m=cust.user_metadata||{};if(!$('#cn').value)$('#cn').value=m.full_name||'';if(!$('#cp').value)$('#cp').value=m.phone||'';if(!$('#ce').value)$('#ce').value=cust.email||''}}
 function acct(msg){acct0(msg);applyLang($('#acct'))}
 function acct0(msg){
   const B=$('#acctBody');
@@ -467,7 +468,7 @@ function acct0(msg){
     else r=await sb.auth.signUp({email:em,password:pw,options:{data:{full_name:$('#an').value.trim(),phone:$('#ap').value.trim()}}});
     if(r.error)return acct(esc(r.error.message));
     if(!r.data.session)return acct(T('Account created. Check your email to confirm, then log in.'));
-    cust=r.data.user;acct();fill()};
+    cust=r.data.user;acct();fill();if(wantOrder){wantOrder=false;openP('drawer')}};
 }
 document.querySelectorAll('.dlogo').forEach(i=>i.src=$('#logo').src);remote.products();if(!DEMO)sb.from('shop_settings').select('delivery_fee').eq('id',1).maybeSingle().then(({data:s})=>{if(s){delivery=+s.delivery_fee;cartUI()}});shop();cartUI();
 
